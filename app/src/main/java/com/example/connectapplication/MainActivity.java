@@ -1,19 +1,21 @@
 package com.example.connectapplication;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +25,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -30,46 +38,102 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 //        checkInternetConnection();
+        ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.INTERNET, Manifest.permission.ACCESS_NETWORK_STATE}, 251);
+        ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, 253);
+//        new ConnectThread().execute();
 
-        new ConnectThread().execute();
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://10.0.2.2:8000/")
+                .addConverterFactory(JacksonConverterFactory.create())
+                .build();
 
-    }
-
-    class ConnectThread extends AsyncTask<Void, Integer, Void> {
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            try {
-                URL url = new URL("http://10.0.2.2:8000/path");
-                URLConnection urlConnection = url.openConnection();
-                HttpURLConnection httpURLConnection = (HttpURLConnection) urlConnection;
-                Log.e("Status code", String.valueOf(httpURLConnection.getResponseCode()));
-                Log.e("Status message", String.valueOf(httpURLConnection.getResponseMessage()));
-
-                InputStream inputStream = httpURLConnection.getInputStream();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-                while ((line = bufferedReader.readLine()) != null)
-                {
-                    stringBuilder.append(line);
-                }
-//                Log.e("Response body", stringBuilder.toString());
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                User user = objectMapper.readValue(stringBuilder.toString(), User.class);
-
-                Log.e("Username", user.getUsername());
-                Log.e("Password", user.getPassword());
-
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+        APIServer apiServer = retrofit.create(APIServer.class);
+        apiServer.getUser().enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                User user = response.body();
+                Log.e("response Username", user.getUsername());
+                Log.e("response Password", user.getPassword());
             }
-            return null;
-        }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+
+            }
+        });
+
+
     }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode) {
+            case 251:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "INTERNET PERMISSION GRANTED", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(this, "INTERNET PERMISSION DENIED", Toast.LENGTH_SHORT).show();
+                }
+
+                if (grantResults.length > 0 && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "ACCESS INTERNET PERMISSION GRANTED", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "ACCESS INTERNET PERMISSION DENIED", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            case 253:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "WRITE EXTERNAL STORAGE PERMISSION GRANTED", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(this, "WRITE EXTERNAL STORAGE PERMISSION DENIED", Toast.LENGTH_SHORT).show();
+                }
+                return;
+        }
+
+
+
+    }
+
+//    class ConnectThread extends AsyncTask<Void, Integer, Void> {
+//
+//        @Override
+//        protected Void doInBackground(Void... voids) {
+//            try {
+//                URL url = new URL("http://10.0.2.2:8000/path");
+//                URLConnection urlConnection = url.openConnection();
+//                HttpURLConnection httpURLConnection = (HttpURLConnection) urlConnection;
+//                Log.e("Status code", String.valueOf(httpURLConnection.getResponseCode()));
+//                Log.e("Status message", String.valueOf(httpURLConnection.getResponseMessage()));
+//
+//                InputStream inputStream = httpURLConnection.getInputStream();
+//                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+//                StringBuilder stringBuilder = new StringBuilder();
+//                String line;
+//                while ((line = bufferedReader.readLine()) != null)
+//                {
+//                    stringBuilder.append(line);
+//                }
+////                Log.e("Response body", stringBuilder.toString());
+//
+//                ObjectMapper objectMapper = new ObjectMapper();
+//                User user = objectMapper.readValue(stringBuilder.toString(), User.class);
+//
+//                Log.e("Username", user.getUsername());
+//                Log.e("Password", user.getPassword());
+//
+//            } catch (MalformedURLException e) {
+//                throw new RuntimeException(e);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//            return null;
+//        }
+//    }
 
     private Boolean checkInternetConnection() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);

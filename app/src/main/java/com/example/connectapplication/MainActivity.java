@@ -61,42 +61,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
-
-    }
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        switch (requestCode) {
-            case 251:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "INTERNET PERMISSION GRANTED", Toast.LENGTH_SHORT).show();
-                }
-                else {
-                    Toast.makeText(this, "INTERNET PERMISSION DENIED", Toast.LENGTH_SHORT).show();
-                }
-
-                if (grantResults.length > 0 && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "ACCESS INTERNET PERMISSION GRANTED", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(this, "ACCESS INTERNET PERMISSION DENIED", Toast.LENGTH_SHORT).show();
-                }
-                return;
-            case 253:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "WRITE EXTERNAL STORAGE PERMISSION GRANTED", Toast.LENGTH_SHORT).show();
-                }
-                else {
-                    Toast.makeText(this, "WRITE EXTERNAL STORAGE PERMISSION DENIED", Toast.LENGTH_SHORT).show();
-                }
-                return;
-        }
-
-
-
     }
 
 //    class ConnectThread extends AsyncTask<Void, Integer, Void> {
